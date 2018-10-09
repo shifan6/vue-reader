@@ -1,35 +1,48 @@
 <template>
   <div class="eBook">
-    <div class="title-wrapper">
-      <div class="title-left">
-        <span class="icon-back icon"></span>
-      </div>
-      <div class="title-right">
-        <div class="icon-wrapper">
-          <span class="icon-cart icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-person icon"></span>
-        </div>
-        <div class="icon-wrapper">
-          <span class="icon-more icon"></span>
-        </div>
-      </div>
-    </div>
+    <title-bar
+      :isTitleAndMenuShow="isTitleAndMenuShow"></title-bar>
     <div class="reader-wrapper">
       <div id="read"></div>
       <div class="mask">
         <div class="mask-left" @click="prevPage"></div>
-        <div class="mask-center"></div>
+        <div class="mask-center" @click="toggleTitleAndMenu"></div>
         <div class="mask-right" @click="nextPage"></div>
       </div>
     </div>
+    <menu-bar
+      :isTitleAndMenuShow="isTitleAndMenuShow"
+      :fontSizeList="fontSizeList"
+      :defaultFontSize="defaultFontSize"
+      @setFontSize="setFontSize"
+      ref="MenuBar"></menu-bar>
   </div>
 </template>
 <script>
+  import TitleBar from '@/components/TitleBar'
+  import MenuBar from '@/components/MenuBar'
   import epub from 'epubjs'
   const downloadUrl = '/static/看见.epub';
     export default {
+      components: {
+        TitleBar,
+        MenuBar
+      },
+      data: function() {
+        return {
+          isTitleAndMenuShow: false,
+          fontSizeList: [
+            { fontSize: 12 },
+            { fontSize: 14 },
+            { fontSize: 16 },
+            { fontSize: 18 },
+            { fontSize: 20 },
+            { fontSize: 22 },
+            { fontSize: 24 },
+          ],
+          defaultFontSize: 16
+        }
+      },
       methods: {
         prevPage: function(){
           if(this.rendition){
@@ -52,6 +65,22 @@
           });
           //通过Rendition.display渲染电子书
           this.rendition.display();
+          //获取Theme对象
+          this.themes = this.rendition.themes;
+          //设置默认字体大小
+          this.setFontSize(this.defaultFontSize);
+        },
+        toggleTitleAndMenu: function () {
+          this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
+          if(!this.isTitleAndMenuShow){
+            this.$refs.MenuBar.hideSetting()
+          }
+        },
+        setFontSize: function (fontSize) {
+          this.defaultFontSize = fontSize;
+          if(this.themes){
+            this.themes.fontSize(fontSize + 'px');
+          }
         }
       },
       mounted: function () {
@@ -63,33 +92,7 @@
 @import "assets/styles/global";
 .eBook {
   position: relative;
-  .title-wrapper {
-    display: flex;
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 100;
-    width: 100%;
-    height: px2rem(96);
-    box-shadow: 0 px2rem(15) px2rem(15) rgba(0, 0, 0, .15);
-    background: #fff;
-    .title-left {
-      flex: 0 0 px2rem(80);
-      @include center;
-    }
-    .title-right {
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-      .icon-wrapper {
-        flex: 0 0 px2rem(80);
-        @include center;
-        .icon-cart {
-          font-size: px2rem(44);
-        }
-      }
-    }
-  }
+
   .reader-wrapper {
     .mask {
       position: absolute;
@@ -110,6 +113,7 @@
       }
     }
   }
+
 }
 </style>
 

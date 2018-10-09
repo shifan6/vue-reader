@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import eBook from '@/eBook'
+import EBook from '@/EBook'
 
 Vue.use(Router)
 
@@ -8,11 +8,11 @@ export default new Router({
   routes: [
     {
       path: '/',
-      redirect: '/eBook'
+      redirect: '/EBook'
     },
     {
-      path: '/eBook',
-      component: eBook
+      path: '/EBook',
+      component: EBook
     }
   ]
 })
