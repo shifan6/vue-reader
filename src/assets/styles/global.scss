@@ -2,7 +2,7 @@
 
 // 1rem = fontSize px
 // 1px = (1 / fontSize) rem
-$fontSize: 50;
+$fontSize: 100;
 @function px2rem($px) {
   @return ($px / $fontSize) + rem;
 }
@@ -11,4 +11,9 @@ $fontSize: 50;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.icon {
+  color: #333;
+  font-size: px2rem(40);
 }

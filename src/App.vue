@@ -1,8 +1,5 @@
 <template>
   <div id="app">
-    <span class="icon-back"></span>
-    <span class="icon-progress"></span>
-    <img src="./assets/logo.png">
     <router-view/>
   </div>
 </template>
