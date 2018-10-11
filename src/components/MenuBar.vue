@@ -13,10 +13,26 @@
           </div>
           <div class="preview" :style="{ fontSize: fontSizeList[fontSizeList.length-1].fontSize + 'px'}">A</div>
         </div>
-        <div class="setting-theme" v-if="showTag == 1">
+        <div class="setting-theme" v-else-if="showTag == 1">
           <div class="setting-theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
             <div class="preview" :style="{ background: item.style.body.background }" :class="{'border': item.style.body.background === '#fff'}"></div>
             <div class="text" :class="{ 'selected': index === defaultThemeId }">{{item.title}}</div>
+          </div>
+        </div>
+        <div class="setting-progress" v-else-if="showTag == 2">
+          <div class="progress-wrapper">
+            <input class="progress" type="range"
+                   max="100"
+                   min="0"
+                   step="0.1"
+                   @change="onProgressChange"
+                   @input="onProgressInput"
+                   :value="progress"
+                   :disabled="!bookAvailable"
+                   ref="progress">
+          </div>
+          <div class="text-wrapper">
+            <span>{{ bookAvailable ? progress + '%' : '加载中...'}}</span>
           </div>
         </div>
       </div>
@@ -50,12 +66,14 @@
       fontSizeList: Array,
       defaultFontSize: Number,
       themesList: Array,
-      defaultThemeId: Number
+      defaultThemeId: Number,
+      bookAvailable: Boolean
     },
     data: function () {
       return {
         isSettingShow: false,
-        showTag: 0
+        showTag: 0,
+        progress: 0
       }
     },
     methods: {
@@ -71,6 +89,13 @@
       },
       setTheme: function (index) {
         this.$emit('setTheme', index);
+      },
+      onProgressChange: function (e) {
+        this.$emit('onProgressChange', e.target.value);
+      },
+      onProgressInput: function (e) {
+        this.progress = e.target.value;
+        this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`;
       }
     }
   }
@@ -195,6 +220,46 @@
               color: #333;
             }
           }
+        }
+      }
+      .setting-progress {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        .progress-wrapper {
+          width: 100%;
+          height: 100%;
+          @include center;
+          padding: 0 px2rem(60);
+          box-sizing: border-box;
+          .progress {
+            width: 100%;
+            -webkit-appearance: none;
+            height: px2rem(4);
+            background: -webkit-linear-gradient(#999, #999) no-repeat, #ddd;
+            background-size: 0 100%;
+            &:focus {
+              outline: none;
+            }
+            &::-webkit-slider-thumb {
+              -webkit-appearance: none;
+              width: px2rem(40);
+              height: px2rem(40);
+              border-radius: 50%;
+              box-shadow: 0 px2rem(8) px2rem(8) 0 rgba(0, 0, 0, .15);
+              border: px2rem(1) solid #ddd;
+              background: #fff;
+            }
+          }
+        }
+        .text-wrapper {
+          position: absolute;
+          left: 0;
+          bottom: px2rem(10);
+          width: 100%;
+          color: #333;
+          font-size: px2rem(24);
+          text-align: center;
         }
       }
     }

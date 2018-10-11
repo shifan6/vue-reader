@@ -18,6 +18,8 @@
       :themesList="themesList"
       :defaultThemeId="defaultThemeId"
       @setTheme="setTheme"
+      :bookAvailable="bookAvailable"
+      @onProgressChange="onProgressChange"
       ref="MenuBar"></menu-bar>
   </div>
 </template>
@@ -83,7 +85,9 @@
               }
             }
           ],
-          defaultThemeId: 0
+          defaultThemeId: 0,
+          //图书是否处于可用状态
+          bookAvailable: false
         }
       },
       methods: {
@@ -116,6 +120,14 @@
           // this.themes.select(name)
           this.registerThemes();
           this.setTheme(this.defaultThemeId);
+          // 获取locations对象
+          // 通过epubjs的钩子函数来实现
+          this.book.ready.then(() => {
+            return this.book.locations.generate()
+          }).then(() => {
+            this.locations = this.book.locations;
+            this.bookAvailable = true;
+          })
         },
         toggleTitleAndMenu: function () {
           this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
@@ -139,6 +151,12 @@
           if(this.themes){
             this.themes.select(this.themesList[themeId].name);
           }
+        },
+        // progress 进度条的数值 （0-100）
+        onProgressChange: function (progress) {
+          const percentage = progress / 100;
+          const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0
+          this.rendition.display(location);
         }
       },
       mounted: function () {
