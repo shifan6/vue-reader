@@ -25,8 +25,8 @@
                    max="100"
                    min="0"
                    step="0.1"
-                   @change="onProgressChange"
-                   @input="onProgressInput"
+                   @change="onProgressChange($event.target.value)"
+                   @input="onProgressInput($event.target.value)"
                    :value="progress"
                    :disabled="!bookAvailable"
                    ref="progress">
@@ -101,6 +101,7 @@
           this.isSettingShow = false;
           this.isShowContent = true;
         }else {
+          this.getProcess();
           this.isSettingShow = true;
         }
       },
@@ -113,11 +114,11 @@
       setTheme: function (index) {
         this.$emit('setTheme', index);
       },
-      onProgressChange: function (e) {
-        this.$emit('onProgressChange', e.target.value);
+      onProgressChange: function (progress) {
+        this.$emit('onProgressChange', progress);
       },
-      onProgressInput: function (e) {
-        this.progress = e.target.value;
+      onProgressInput: function (progress) {
+        this.progress = progress;
         this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`;
       },
       hideContent: function () {
@@ -125,6 +126,9 @@
       },
       navigateTo: function (href) {
         this.$emit('navigateTo', href)
+      },
+      getProcess: function () {
+        this.$emit('getProcess');
       }
     }
   }

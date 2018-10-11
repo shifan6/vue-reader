@@ -22,6 +22,7 @@
       @onProgressChange="onProgressChange"
       :navigation="navigation"
       @navigateTo="navigateTo"
+      @getProcess="getProcess"
       ref="MenuBar"></menu-bar>
   </div>
 </template>
@@ -131,7 +132,12 @@
         }).then(() => {
           this.locations = this.book.locations;
           this.bookAvailable = true;
-        })
+        });
+
+        this.book.on('this.book:pageChanged', function (location) {
+          console.log(1)
+          console.log(location.anchorPage, location.pageRange)
+        });
       },
       toggleTitleAndMenu: function () {
         this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
@@ -174,6 +180,15 @@
         this.$refs.MenuBar.hideSetting();
         // 隐藏菜单栏弹出的目录
         this.$refs.MenuBar.hideContent();
+      },
+      // 获取当前进度
+      getProcess: function () {
+        if(this.bookAvailable) {
+          let currentLocation = this.rendition.currentLocation();
+          let currentPage = this.locations.percentageFromCfi(currentLocation.start.cfi);
+          this.$refs.MenuBar.progress = Math.round(currentPage*100);
+          this.$refs.MenuBar.onProgressInput(this.$refs.MenuBar.progress);
+        }
       }
     },
     mounted: function () {
