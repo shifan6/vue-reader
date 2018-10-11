@@ -15,6 +15,9 @@
       :fontSizeList="fontSizeList"
       :defaultFontSize="defaultFontSize"
       @setFontSize="setFontSize"
+      :themesList="themesList"
+      :defaultThemeId="defaultThemeId"
+      @setTheme="setTheme"
       ref="MenuBar"></menu-bar>
   </div>
 </template>
@@ -40,7 +43,47 @@
             { fontSize: 26 },
             { fontSize: 28 },
           ],
-          defaultFontSize: 20
+          defaultFontSize: 20,
+          themesList: [
+            {
+              name: 'default',
+              title: '默认',
+              style: {
+                body: {
+                  'color': '#000',
+                  'background': '#fff'
+                }
+              }
+            },{
+              name: 'eye',
+              title: '护眼',
+              style: {
+                body: {
+                  'color': '#000',
+                  'background': '#ceeaba'
+                }
+              }
+            },{
+              name: 'night',
+              title: '夜晚',
+              style: {
+                body: {
+                  'color': '#fff',
+                  'background': '#000'
+                }
+              }
+            },{
+              name: 'classic',
+              title: '经典',
+              style: {
+                body: {
+                  'color': '#000',
+                  'background': 'rgba(241, 236, 226)'
+                }
+              }
+            }
+          ],
+          defaultThemeId: 0
         }
       },
       methods: {
@@ -54,21 +97,25 @@
             this.rendition.next();
           }
         },
-        //电子书的解析和渲染
+        // 电子书的解析和渲染
         showEpub: function() {
-          //生成Book对象
+          // 生成Book对象
           this.book = new epub(downloadUrl);
-          //生成Rendition
+          // 生成Rendition
           this.rendition = this.book.renderTo('read', {
             width: window.innerWidth,
             height: window.innerHeight
           });
-          //通过Rendition.display渲染电子书
+          // 通过Rendition.display渲染电子书
           this.rendition.display();
-          //获取Theme对象
+          // 获取Theme对象
           this.themes = this.rendition.themes;
-          //设置默认字体大小
+          // 设置默认字体大小
           this.setFontSize(this.defaultFontSize);
+          // this.themes.register(name, styles)
+          // this.themes.select(name)
+          this.registerThemes();
+          this.setTheme(this.defaultThemeId);
         },
         toggleTitleAndMenu: function () {
           this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
@@ -80,6 +127,17 @@
           this.defaultFontSize = fontSize;
           if(this.themes){
             this.themes.fontSize(fontSize + 'px');
+          }
+        },
+        registerThemes: function () {
+          this.themesList.forEach(theme => {
+            this.themes.register(theme.name, theme.style)
+          })
+        },
+        setTheme: function (themeId) {
+          this.defaultThemeId = themeId;
+          if(this.themes){
+            this.themes.select(this.themesList[themeId].name);
           }
         }
       },

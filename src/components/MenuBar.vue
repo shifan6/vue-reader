@@ -2,10 +2,10 @@
   <div class="menu-bar">
     <transition name="slide-up">
       <div class="setting-wrapper" v-show="isSettingShow">
-        <div class="setting-font-size">
+        <div class="setting-font-size" v-if="showTag == 0">
           <div class="preview" :style="{ fontSize: fontSizeList[0].fontSize + 'px' }">A</div>
           <div class="font-wrapper">
-            <div class="font-size" v-for="item in fontSizeList" @click="setFontSize(item.fontSize)">
+            <div class="font-size" v-for="(item, index) in fontSizeList" @click="setFontSize(item.fontSize)" :key="index">
               <div class="point" v-if="defaultFontSize == item.fontSize">
                 <div class="small-point"></div>
               </div>
@@ -13,21 +13,27 @@
           </div>
           <div class="preview" :style="{ fontSize: fontSizeList[fontSizeList.length-1].fontSize + 'px'}">A</div>
         </div>
+        <div class="setting-theme" v-if="showTag == 1">
+          <div class="setting-theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
+            <div class="preview" :style="{ background: item.style.body.background }" :class="{'border': item.style.body.background === '#fff'}"></div>
+            <div class="text" :class="{ 'selected': index === defaultThemeId }">{{item.title}}</div>
+          </div>
+        </div>
       </div>
     </transition>
     <transition name="slide-up">
       <div class="menu-wrapper" v-show="isTitleAndMenuShow" :class="{'hide-box-shadow': isSettingShow || !isTitleAndMenuShow}">
         <div class="icon-wrapper">
-          <span class="icon-menu icon"></span>
+          <span class="icon-menu icon" @click="showSetting(3)"></span>
         </div>
         <div class="icon-wrapper">
-          <span class="icon-progress icon"></span>
+          <span class="icon-progress icon" @click="showSetting(2)"></span>
         </div>
         <div class="icon-wrapper">
-          <span class="icon-bright icon"></span>
+          <span class="icon-bright icon" @click="showSetting(1)"></span>
         </div>
         <div class="icon-wrapper">
-          <span class="icon-a icon" @click="showSetting">A</span>
+          <span class="icon-a icon" @click="showSetting(0)">A</span>
         </div>
       </div>
     </transition>
@@ -42,22 +48,29 @@
         value: false
       },
       fontSizeList: Array,
-      defaultFontSize: Number
+      defaultFontSize: Number,
+      themesList: Array,
+      defaultThemeId: Number
     },
     data: function () {
       return {
-        isSettingShow: false
+        isSettingShow: false,
+        showTag: 0
       }
     },
     methods: {
-      showSetting: function () {
-        this.isSettingShow = true
+      showSetting: function (tag) {
+        this.isSettingShow = true;
+        this.showTag = tag;
       },
       hideSetting: function () {
         this.isSettingShow = false
       },
       setFontSize: function (fontSize) {
         this.$emit('setFontSize', fontSize)
+      },
+      setTheme: function (index) {
+        this.$emit('setTheme', index);
       }
     }
   }
@@ -160,7 +173,32 @@
           }
         }
       }
+      .setting-theme {
+        display: flex;
+        height: 100%;
+        .setting-theme-item {
+          flex: 1;
+          padding: px2rem(20);
+          box-sizing: border-box;
+          .preview {
+            height: px2rem(50);
+            margin-bottom: px2rem(20);
+            &.border {
+              border: 1px solid #ccc;
+            }
+          }
+          .text {
+            font-size: px2rem(26);
+            color: #ccc;
+            text-align: center;
+            &.selected {
+              color: #333;
+            }
+          }
+        }
+      }
     }
+
   }
 
 </style>
