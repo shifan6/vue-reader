@@ -53,11 +53,27 @@
         </div>
       </div>
     </transition>
+    <content-view :isShowContent="isShowContent"
+                  v-show="isShowContent"
+                  :navigation="navigation"
+                  :bookAvailable="bookAvailable"
+                  @navigateTo="navigateTo"
+    ></content-view>
+    <transition name="fade">
+      <div class="content-mask"
+           v-if="isShowContent"
+           @click="hideContent"
+      ></div>
+    </transition>
   </div>
 </template>
 <script>
+  import ContentView from '@/components/ContentView'
   export default {
     name: "MenuBar",
+    components: {
+      ContentView
+    },
     props: {
       isTitleAndMenuShow: {
         type: Boolean,
@@ -67,25 +83,32 @@
       defaultFontSize: Number,
       themesList: Array,
       defaultThemeId: Number,
-      bookAvailable: Boolean
+      bookAvailable: Boolean,
+      navigation: Object
     },
     data: function () {
       return {
         isSettingShow: false,
         showTag: 0,
-        progress: 0
+        progress: 0,
+        isShowContent: false
       }
     },
     methods: {
       showSetting: function (tag) {
-        this.isSettingShow = true;
         this.showTag = tag;
+        if(this.showTag === 3){
+          this.isSettingShow = false;
+          this.isShowContent = true;
+        }else {
+          this.isSettingShow = true;
+        }
       },
       hideSetting: function () {
-        this.isSettingShow = false
+        this.isSettingShow = false;
       },
       setFontSize: function (fontSize) {
-        this.$emit('setFontSize', fontSize)
+        this.$emit('setFontSize', fontSize);
       },
       setTheme: function (index) {
         this.$emit('setTheme', index);
@@ -96,6 +119,12 @@
       onProgressInput: function (e) {
         this.progress = e.target.value;
         this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`;
+      },
+      hideContent: function () {
+        this.isShowContent = false;
+      },
+      navigateTo: function (href) {
+        this.$emit('navigateTo', href)
       }
     }
   }
@@ -263,7 +292,15 @@
         }
       }
     }
-
+    .content-mask {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 101;
+      width: 100%;
+      height: 100%;
+      background: rgba(51, 51, 51, .8);
+    }
   }
 
 </style>
