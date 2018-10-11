@@ -32,15 +32,15 @@
         return {
           isTitleAndMenuShow: false,
           fontSizeList: [
-            { fontSize: 12 },
-            { fontSize: 14 },
             { fontSize: 16 },
             { fontSize: 18 },
             { fontSize: 20 },
             { fontSize: 22 },
             { fontSize: 24 },
+            { fontSize: 26 },
+            { fontSize: 28 },
           ],
-          defaultFontSize: 16
+          defaultFontSize: 20
         }
       },
       methods: {
