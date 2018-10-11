@@ -29,7 +29,7 @@
   import TitleBar from '@/components/TitleBar'
   import MenuBar from '@/components/MenuBar'
   import epub from 'epubjs'
-  const downloadUrl = '/static/看见.epub';
+  const downloadUrl = './static/看见.epub';
   export default {
     components: {
       TitleBar,
