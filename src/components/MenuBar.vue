@@ -5,7 +5,7 @@
         <div class="setting-font-size" v-show="showTag == 0">
           <div class="preview" :style="{ fontSize: fontSizeList[0].fontSize + 'px' }">A</div>
           <div class="font-wrapper">
-            <div class="font-size" v-for="(item, index) in fontSizeList" @click="setFontSize(item.fontSize)" :key="index">
+            <div class="font-size" ref="fontItem" v-for="(item, index) in fontSizeList" @click="setFontSize(item.fontSize)" :key="index">
               <div class="point" v-if="defaultFontSize == item.fontSize">
                 <div class="small-point"></div>
               </div>
@@ -179,7 +179,7 @@
         display: flex;
         height: 100%;
         .preview {
-          flex: 0 0 px2rem(80);
+          flex: 0 0 px2rem(120);
           @include center;
         }
         .font-wrapper {
@@ -192,7 +192,7 @@
               content: '';
               position: absolute;
               z-index: 9;
-              left: 0;
+              left: 50%;
               top: 50%;
               width: 1px;
               height: px2rem(16);
@@ -209,19 +209,26 @@
               height: 1px;
               background: #ccc;
             }
-            &:last-child {
-              flex: 0 0 0;
-              width: 0;
+            &:first-child,
+            &:last-child{
+              flex: 0.5;
+            }
+            &:first-child::before{
+              left: 0;
+            }
+            &:last-child::before {
+              left: 100%;
             }
             .point {
               position: absolute;
               z-index: 10;
-              left: px2rem(-20);
+              left: 50%;
               top: 50%;
               width: px2rem(40);
               height: px2rem(40);
               border-radius: 50%;
               margin-top: px2rem(-20);
+              margin-left: px2rem(-20);
               border: 1px solid #ccc;
               box-shadow: 0 px2rem(8) px2rem(8) rgba(0, 0, 0, .15);
               box-sizing: border-box;
@@ -232,6 +239,16 @@
                 height: px2rem(8);
                 border-radius: 50%;
                 background: #333;
+              }
+            }
+            &:first-child {
+              .point {
+                left: 0;
+              }
+            }
+            &:last-child {
+              .point {
+                left: 100%;
               }
             }
           }
