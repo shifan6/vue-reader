@@ -97,12 +97,16 @@
     methods: {
       prevPage: function(){
         if(this.rendition){
-          this.rendition.prev();
+          this.rendition.prev().then(() => {
+            this.getProcess();
+          });
         }
       },
       nextPage: function(){
         if(this.rendition){
-          this.rendition.next();
+          this.rendition.next().then(() => {
+            this.getProcess();
+          });
         }
       },
       // 电子书的解析和渲染
@@ -132,11 +136,6 @@
         }).then(() => {
           this.locations = this.book.locations;
           this.bookAvailable = true;
-        });
-
-        this.book.on('this.book:pageChanged', function (location) {
-          console.log(1)
-          console.log(location.anchorPage, location.pageRange)
         });
       },
       toggleTitleAndMenu: function () {
@@ -172,6 +171,7 @@
       navigateTo: function (href) {
         this.rendition.display(href);
         this.hideTitleAndMenu();
+        this.getProcess();
       },
       hideTitleAndMenu: function () {
         // 隐藏标题栏和菜单栏
@@ -186,8 +186,7 @@
         if(this.bookAvailable) {
           let currentLocation = this.rendition.currentLocation();
           let currentPage = this.locations.percentageFromCfi(currentLocation.start.cfi);
-          this.$refs.MenuBar.progress = Math.round(currentPage*100);
-          this.$refs.MenuBar.onProgressInput(this.$refs.MenuBar.progress);
+          this.$refs.MenuBar.progress = Math.round(currentPage*1000) / 10;
         }
       }
     },

@@ -2,7 +2,7 @@
   <div class="menu-bar">
     <transition name="slide-up">
       <div class="setting-wrapper" v-show="isSettingShow">
-        <div class="setting-font-size" v-if="showTag == 0">
+        <div class="setting-font-size" v-show="showTag == 0">
           <div class="preview" :style="{ fontSize: fontSizeList[0].fontSize + 'px' }">A</div>
           <div class="font-wrapper">
             <div class="font-size" v-for="(item, index) in fontSizeList" @click="setFontSize(item.fontSize)" :key="index">
@@ -13,20 +13,20 @@
           </div>
           <div class="preview" :style="{ fontSize: fontSizeList[fontSizeList.length-1].fontSize + 'px'}">A</div>
         </div>
-        <div class="setting-theme" v-else-if="showTag == 1">
+        <div class="setting-theme" v-show="showTag == 1">
           <div class="setting-theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
             <div class="preview" :style="{ background: item.style.body.background }" :class="{'border': item.style.body.background === '#fff'}"></div>
             <div class="text" :class="{ 'selected': index === defaultThemeId }">{{item.title}}</div>
           </div>
         </div>
-        <div class="setting-progress" v-else-if="showTag == 2">
+        <div class="setting-progress" v-show="showTag == 2">
           <div class="progress-wrapper">
             <input class="progress" type="range"
                    max="100"
                    min="0"
                    step="0.1"
-                   @change="onProgressChange($event.target.value)"
-                   @input="onProgressInput($event.target.value)"
+                   @change="onProgressChange"
+                   @input="onProgressInput"
                    :value="progress"
                    :disabled="!bookAvailable"
                    ref="progress">
@@ -101,8 +101,8 @@
           this.isSettingShow = false;
           this.isShowContent = true;
         }else {
-          this.getProcess();
           this.isSettingShow = true;
+          this.getProcess();
         }
       },
       hideSetting: function () {
@@ -114,12 +114,11 @@
       setTheme: function (index) {
         this.$emit('setTheme', index);
       },
-      onProgressChange: function (progress) {
-        this.$emit('onProgressChange', progress);
+      onProgressChange: function (e) {
+        this.$emit('onProgressChange', e.target.value);
       },
-      onProgressInput: function (progress) {
-        this.progress = progress;
-        this.$refs.progress.style.backgroundSize = `${this.progress}% 100%`;
+      onProgressInput: function (e) {
+        this.progress = e.target.value;
       },
       hideContent: function () {
         this.isShowContent = false;
@@ -129,6 +128,13 @@
       },
       getProcess: function () {
         this.$emit('getProcess');
+      }
+    },
+    watch: {
+      progress: {
+        handler: function (val) {
+          this.$refs.progress.style.backgroundSize = `${val}% 100%`;
+        }
       }
     }
   }
