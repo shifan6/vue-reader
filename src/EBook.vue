@@ -83,7 +83,7 @@
             style: {
               body: {
                 'color': '#000',
-                'background': 'rgba(241, 236, 226)'
+                'background': 'rgb(241, 236, 226)'
               }
             }
           }
