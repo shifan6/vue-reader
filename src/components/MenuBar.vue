@@ -90,7 +90,7 @@
       return {
         isSettingShow: false,
         showTag: 0,
-        progress: 0,
+        progress: Number(localStorage.getItem("defaultProcess")) || 0,
         isShowContent: false
       }
     },
@@ -134,6 +134,7 @@
       progress: {
         handler: function (val) {
           this.$refs.progress.style.backgroundSize = `${val}% 100%`;
+          localStorage.setItem("defaultProcess", val)
         }
       }
     }

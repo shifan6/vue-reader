@@ -48,7 +48,7 @@
           { fontSize: 26 },
           { fontSize: 28 },
         ],
-        defaultFontSize: 20,
+        defaultFontSize: Number(localStorage.getItem('defaultFontSize'))|| 20,
         themesList: [
           {
             name: 'default',
@@ -88,7 +88,8 @@
             }
           }
         ],
-        defaultThemeId: 0,
+        defaultThemeId: Number(localStorage.getItem("defaultThemeId")) || 0,
+        defaultProcess: localStorage.getItem("defaultProcess") || 0,
         //图书是否处于可用状态
         bookAvailable: false,
         navigation: {}
@@ -119,7 +120,11 @@
           height: window.innerHeight
         });
         // 通过Rendition.display渲染电子书
-        this.rendition.display();
+        if(this.defaultProcess > 0){
+          console.log('加载中...')
+        }else {
+          this.rendition.display();
+        }
         // 获取Theme对象
         this.themes = this.rendition.themes;
         // 设置默认字体大小
@@ -136,6 +141,10 @@
         }).then(() => {
           this.locations = this.book.locations;
           this.bookAvailable = true;
+          if(this.defaultProcess > 0){
+            const loc = this.locations.cfiFromPercentage(this.defaultProcess / 100);
+            this.rendition.display(loc);
+          }
         });
       },
       toggleTitleAndMenu: function () {
@@ -146,6 +155,7 @@
       },
       setFontSize: function (fontSize) {
         this.defaultFontSize = fontSize;
+        localStorage.setItem('defaultFontSize', fontSize);
         if(this.themes){
           this.themes.fontSize(fontSize + 'px');
         }
@@ -157,6 +167,7 @@
       },
       setTheme: function (themeId) {
         this.defaultThemeId = themeId;
+        localStorage.setItem("defaultThemeId", themeId);
         if(this.themes){
           this.themes.select(this.themesList[themeId].name);
         }
