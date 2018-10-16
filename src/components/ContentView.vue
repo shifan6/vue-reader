@@ -50,7 +50,7 @@
         color: #666;
         border-bottom: 1px solid #f6f6f6;
         &.current {
-          color: #ff5b28;
+          color: #409EFF;
         }
         .text {
           flex: 1;
