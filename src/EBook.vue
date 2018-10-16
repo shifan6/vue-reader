@@ -29,6 +29,7 @@
 <script>
   import TitleBar from '@/components/TitleBar'
   import MenuBar from '@/components/MenuBar'
+  import { Loading } from 'element-ui'
   import epub from 'epubjs'
   const downloadUrl = './static/看见.epub';
   export default {
@@ -121,7 +122,9 @@
         });
         // 通过Rendition.display渲染电子书
         if(this.defaultProcess > 0){
-          console.log('加载中...')
+          this.loadingInstance = Loading.service({
+            text: '进度读取中'
+          });
         }else {
           this.rendition.display();
         }
@@ -144,13 +147,14 @@
           if(this.defaultProcess > 0){
             const loc = this.locations.cfiFromPercentage(this.defaultProcess / 100);
             this.rendition.display(loc);
+            this.loadingInstance.close();
           }
         });
       },
       toggleTitleAndMenu: function () {
         this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
         if(!this.isTitleAndMenuShow){
-          this.$refs.MenuBar.hideSetting()
+          this.$refs.MenuBar.hideSetting();
         }
       },
       setFontSize: function (fontSize) {
