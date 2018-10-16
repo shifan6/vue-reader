@@ -49,7 +49,7 @@
           { fontSize: 26 },
           { fontSize: 28 },
         ],
-        defaultFontSize: Number(localStorage.getItem('defaultFontSize'))|| 20,
+        defaultFontSize: Number(localStorage.getItem('defaultFontSize')) || 20,
         themesList: [
           {
             name: 'default',
@@ -202,6 +202,7 @@
           let currentLocation = this.rendition.currentLocation();
           let currentPage = this.locations.percentageFromCfi(currentLocation.start.cfi);
           this.$refs.MenuBar.progress = Math.round(currentPage*1000) / 10;
+          this.$refs.MenuBar.currentHref = currentLocation.start.href;
         }
       }
     },

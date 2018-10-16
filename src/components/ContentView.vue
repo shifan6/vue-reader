@@ -2,7 +2,7 @@
   <transition name="slide-right">
     <div class="content">
       <div class="content-wrapper" v-if="bookAvailable">
-        <div class="content-item" v-for="(item, index) in navigation.toc" :key="index" @click="navigateTo(item.href)">
+        <div class="content-item" v-for="(item, index) in navigation.toc" :key="index" @click="navigateTo(item.href)" :class="{'current': item.href === currentHref}">
           <span class="text">{{ item.label }}</span>
         </div>
       </div>
@@ -16,7 +16,8 @@
       props: {
         isShowContent: Boolean,
         navigation: Object,
-        bookAvailable: Boolean
+        bookAvailable: Boolean,
+        currentHref: String
       },
       methods: {
         navigateTo: function (href) {
@@ -43,12 +44,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: px2rem(24);
+        font-size: px2rem(20);
         box-sizing: border-box;
         text-align: left;
+        color: #666;
+        border-bottom: 1px solid #f6f6f6;
+        &.current {
+          color: #ff5b28;
+        }
         .text {
           flex: 1;
-          font-size: px2rem(24);
+          font-size: px2rem(20);
         }
       }
     }

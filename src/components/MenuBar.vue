@@ -58,6 +58,7 @@
                   :navigation="navigation"
                   :bookAvailable="bookAvailable"
                   @navigateTo="navigateTo"
+                  :currentHref="currentHref"
     ></content-view>
     <transition name="fade">
       <div class="content-mask"
@@ -91,7 +92,8 @@
         isSettingShow: false,
         showTag: 0,
         progress: Number(localStorage.getItem("defaultProcess")) || 0,
-        isShowContent: false
+        isShowContent: false,
+        currentHref: ''
       }
     },
     methods: {
@@ -102,8 +104,8 @@
           this.isShowContent = true;
         }else {
           this.isSettingShow = true;
-          this.getProcess();
         }
+        this.getProcess();
       },
       hideSetting: function () {
         this.isSettingShow = false;
