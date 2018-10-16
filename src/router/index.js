@@ -13,6 +13,7 @@ export default new Router({
     },
     {
       path: '/EBook',
+      name: 'EBook',
       component: EBook
     }
   ]

@@ -40,11 +40,11 @@
     .content-wrapper {
       padding: px2rem(20) px2rem(60);
       .content-item {
-        line-height: px2rem(70);
+        line-height: px2rem(80);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: px2rem(20);
+        font-size: px2rem(24);
         box-sizing: border-box;
         text-align: left;
         color: #666;
@@ -54,7 +54,7 @@
         }
         .text {
           flex: 1;
-          font-size: px2rem(20);
+          font-size: px2rem(24);
         }
       }
     }
