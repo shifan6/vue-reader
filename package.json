@@ -14,6 +14,7 @@
     "epubjs": "^0.3.71",
     "npm": "^6.4.1",
     "vue": "^2.5.2",
+    "vue-directive-touch": "^1.0.22",
     "vue-router": "^3.0.1"
   },
   "devDependencies": {

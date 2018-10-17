@@ -44,7 +44,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: px2rem(24);
+        font-size: px2rem(28);
         box-sizing: border-box;
         text-align: left;
         color: #666;
@@ -54,7 +54,7 @@
         }
         .text {
           flex: 1;
-          font-size: px2rem(24);
+          font-size: px2rem(28);
         }
       }
     }

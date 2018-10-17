@@ -4,7 +4,7 @@
       :isTitleAndMenuShow="isTitleAndMenuShow"></title-bar>
     <div class="reader-wrapper">
       <div id="read"></div>
-      <div class="mask">
+      <div class="mask" v-touch:left="nextPage" v-touch:right="prevPage">
         <div class="mask-left" @click="prevPage"></div>
         <div class="mask-center" @click="toggleTitleAndMenu"></div>
         <div class="mask-right" @click="nextPage"></div>
@@ -41,15 +41,15 @@
       return {
         isTitleAndMenuShow: false,
         fontSizeList: [
+          { fontSize: 12 },
+          { fontSize: 14 },
           { fontSize: 16 },
           { fontSize: 18 },
           { fontSize: 20 },
           { fontSize: 22 },
           { fontSize: 24 },
-          { fontSize: 26 },
-          { fontSize: 28 },
         ],
-        defaultFontSize: Number(localStorage.getItem('defaultFontSize')) || 20,
+        defaultFontSize: Number(localStorage.getItem('defaultFontSize')) || 16,
         themesList: [
           {
             name: 'default',

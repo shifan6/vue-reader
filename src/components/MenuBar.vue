@@ -91,7 +91,7 @@
       return {
         isSettingShow: false,
         showTag: 0,
-        progress: Number(localStorage.getItem("defaultProcess")) || 0,
+        progress: 0,
         isShowContent: false,
         currentHref: ''
       }
