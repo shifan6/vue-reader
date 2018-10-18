@@ -2,7 +2,7 @@
   <div class="eBook">
     <title-bar
       :isTitleAndMenuShow="isTitleAndMenuShow"></title-bar>
-    <div class="reader-wrapper">
+    <div class="reader-wrapper" ref="Reader">
       <div id="read"></div>
       <div class="mask" v-touch:left="nextPage" v-touch:right="prevPage">
         <div class="mask-left" @click="prevPage"></div>
@@ -30,8 +30,7 @@
   import TitleBar from '@/components/TitleBar'
   import MenuBar from '@/components/MenuBar'
   import { Loading } from 'element-ui'
-  import epub from 'epubjs'
-  const downloadUrl = './static/看见.epub';
+  import ePub from 'epubjs'
   export default {
     components: {
       TitleBar,
@@ -112,9 +111,9 @@
         }
       },
       // 电子书的解析和渲染
-      showEpub: function() {
+      showEpub: function(path) {
         // 生成Book对象
-        this.book = new epub(downloadUrl);
+        this.book = new ePub(path);
         // 生成Rendition
         this.rendition = this.book.renderTo('read', {
           width: window.innerWidth,
@@ -130,6 +129,8 @@
         }
         // 获取Theme对象
         this.themes = this.rendition.themes;
+        // 获取hooks对象
+        this.hooks = this.rendition.hooks;
         // 设置默认字体大小
         this.setFontSize(this.defaultFontSize);
         // this.themes.register(name, styles)
@@ -207,7 +208,24 @@
       }
     },
     mounted: function () {
-      this.showEpub();
+      let path = this.$route.params.path;
+      if(path){
+        this.showEpub(this.$route.params.path);
+      }
+    },
+    created: function () {
+      let that = this;
+      document.onkeyup = function (e) {
+        let key = e.keyCode;
+        // left
+        if(key === 37) {
+          that.prevPage();
+        }
+        // right
+        if(key === 39) {
+          that.nextPage();
+        }
+      }
     }
   }
 </script>
@@ -215,7 +233,11 @@
 @import "assets/styles/global";
 .eBook {
   position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
   .reader-wrapper {
+    width: 100%;
+    height: 100%;
     .mask {
       position: absolute;
       left: 0;

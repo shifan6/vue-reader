@@ -10,7 +10,7 @@ export default {
 }
 document.addEventListener('DOMContentLoaded', () => {
   const html = document.querySelector('html');
-  let fontSize = Math.min((window.innerWidth / 750) * 100, 100);
+  let fontSize = Math.min((window.innerWidth / 750) * 100, 75);
   html.style.fontSize = fontSize + 'px';
 })
 </script>

@@ -32,7 +32,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 80%;
+    width: px2rem(500);
     height: 100%;
     z-index: 102;
     overflow: scroll;
@@ -44,7 +44,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        font-size: px2rem(28);
+        font-size: px2rem(24);
         box-sizing: border-box;
         text-align: left;
         color: #666;
@@ -54,14 +54,14 @@
         }
         .text {
           flex: 1;
-          font-size: px2rem(28);
+          font-size: px2rem(26);
         }
       }
     }
     .empty {
       width: 100%;
       height: 100%;
-      font-size: px2rem(28);
+      font-size: px2rem(26);
       @include center;
     }
   }
