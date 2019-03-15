@@ -30,14 +30,22 @@
       },
       methods: {
         addBook: function (e) {
-          var filePath = e.target.value;
-          e.target.value = ''
-          this.$router.push({
-            name: 'EBook',
-            params: {
-              path: filePath
-            }
-          })
+          let file = e.target.files[0];
+          let fileName = file.name.replace(/(.*\/)*([^.]+).*/ig,"$2");
+          //清空输入框
+          e.target.value = '';
+          console.log(fileName);
+          let that = this;
+          let fileReader = new FileReader();
+          fileReader.onload = function (e) {
+            //console.log(e.target.result
+            //that.$store.commit('setCurrentPath', e.target.result)
+            that.$store.commit('setCurrentPath', './static/看见.epub')
+            that.$router.push({
+              name: 'EBook'
+            })
+          };
+          fileReader.readAsArrayBuffer(file);
         }
       }
     }

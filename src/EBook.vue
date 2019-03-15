@@ -1,7 +1,6 @@
 <template>
   <div class="eBook">
-    <title-bar
-      :isTitleAndMenuShow="isTitleAndMenuShow"></title-bar>
+    <title-bar></title-bar>
     <div class="reader-wrapper" ref="Reader">
       <div id="read"></div>
       <div class="mask" v-touch:left="nextPage" v-touch:right="prevPage">
@@ -11,16 +10,8 @@
       </div>
     </div>
     <menu-bar
-      :isTitleAndMenuShow="isTitleAndMenuShow"
-      :fontSizeList="fontSizeList"
-      :defaultFontSize="defaultFontSize"
       @setFontSize="setFontSize"
-      :themesList="themesList"
-      :defaultThemeId="defaultThemeId"
-      @setTheme="setTheme"
-      :bookAvailable="bookAvailable"
       @onProgressChange="onProgressChange"
-      :navigation="navigation"
       @navigateTo="navigateTo"
       @getProcess="getProcess"
       ref="MenuBar"></menu-bar>
@@ -30,6 +21,7 @@
   import TitleBar from '@/components/TitleBar'
   import MenuBar from '@/components/MenuBar'
   import { Loading } from 'element-ui'
+  import CONST from '@/config/CONST'
   import ePub from 'epubjs'
   export default {
     components: {
@@ -38,61 +30,6 @@
     },
     data: function() {
       return {
-        isTitleAndMenuShow: false,
-        fontSizeList: [
-          { fontSize: 12 },
-          { fontSize: 14 },
-          { fontSize: 16 },
-          { fontSize: 18 },
-          { fontSize: 20 },
-          { fontSize: 22 },
-          { fontSize: 24 },
-        ],
-        defaultFontSize: Number(localStorage.getItem('defaultFontSize')) || 16,
-        themesList: [
-          {
-            name: 'default',
-            title: '默认',
-            style: {
-              body: {
-                'color': '#000',
-                'background': '#fff'
-              }
-            }
-          },{
-            name: 'eye',
-            title: '护眼',
-            style: {
-              body: {
-                'color': '#000',
-                'background': '#ceeaba'
-              }
-            }
-          },{
-            name: 'night',
-            title: '夜晚',
-            style: {
-              body: {
-                'color': '#fff',
-                'background': '#000'
-              }
-            }
-          },{
-            name: 'classic',
-            title: '经典',
-            style: {
-              body: {
-                'color': '#000',
-                'background': 'rgb(241, 236, 226)'
-              }
-            }
-          }
-        ],
-        defaultThemeId: Number(localStorage.getItem("defaultThemeId")) || 0,
-        defaultProcess: localStorage.getItem("defaultProcess") || 0,
-        //图书是否处于可用状态
-        bookAvailable: false,
-        navigation: {}
       }
     },
     methods: {
@@ -111,16 +48,19 @@
         }
       },
       // 电子书的解析和渲染
-      showEpub: function(path) {
+      showEpub: function() {
+        if(!this.$store.state.currentPath) {
+          return ;
+        }
         // 生成Book对象
-        this.book = new ePub(path);
+        this.book = new ePub(this.$store.state.currentPath);
         // 生成Rendition
         this.rendition = this.book.renderTo('read', {
           width: window.innerWidth,
           height: window.innerHeight
         });
         // 通过Rendition.display渲染电子书
-        if(this.defaultProcess > 0){
+        if(this.$store.state.currentProcess > 0){
           this.loadingInstance = Loading.service({
             text: '进度读取中'
           });
@@ -132,49 +72,47 @@
         // 获取hooks对象
         this.hooks = this.rendition.hooks;
         // 设置默认字体大小
-        this.setFontSize(this.defaultFontSize);
+        this.setFontSize(this.$store.state.currentFontSize);
         // this.themes.register(name, styles)
         // this.themes.select(name)
         this.registerThemes();
-        this.setTheme(this.defaultThemeId);
+        this.setTheme(this.$store.state.currentThemeId);
         // 获取locations对象
         // 通过epubjs的钩子函数来实现
         this.book.ready.then(() => {
-          this.navigation = this.book.navigation;
+          this.$store.commit('setCurrentNavigation', this.book.navigation)
           return this.book.locations.generate();
         }).then(() => {
           this.locations = this.book.locations;
-          this.bookAvailable = true;
-          if(this.defaultProcess > 0){
-            const loc = this.locations.cfiFromPercentage(this.defaultProcess / 100);
+          this.$store.commit('setBookAvailable', true)
+          if(this.$store.state.currentProcess > 0){
+            const loc = this.locations.cfiFromPercentage(this.$store.state.currentProcess / 100);
             this.rendition.display(loc);
             this.loadingInstance.close();
           }
         });
       },
       toggleTitleAndMenu: function () {
-        this.isTitleAndMenuShow = !this.isTitleAndMenuShow;
-        if(!this.isTitleAndMenuShow){
+        this.$store.commit('setTitleAndMenuShow', !this.$store.state.isTitleAndMenuShow)
+        if(!this.$store.state.isTitleAndMenuShow){
           this.$refs.MenuBar.hideSetting();
         }
       },
       setFontSize: function (fontSize) {
-        this.defaultFontSize = fontSize;
-        localStorage.setItem('defaultFontSize', fontSize);
+        this.$store.commit('setCurrentFontSize', fontSize)
         if(this.themes){
           this.themes.fontSize(fontSize + 'px');
         }
       },
       registerThemes: function () {
-        this.themesList.forEach(theme => {
+        CONST.bookConfig.themesList.forEach(theme => {
           this.themes.register(theme.name, theme.style)
         })
       },
       setTheme: function (themeId) {
-        this.defaultThemeId = themeId;
-        localStorage.setItem("defaultThemeId", themeId);
+        this.$store.commit('setCurrentThemeId', themeId)
         if(this.themes){
-          this.themes.select(this.themesList[themeId].name);
+          this.themes.select(CONST.bookConfig.themesList[themeId].name);
         }
       },
       // progress 进度条的数值 （0-100）
@@ -191,7 +129,7 @@
       },
       hideTitleAndMenu: function () {
         // 隐藏标题栏和菜单栏
-        this.isTitleAndMenuShow = false;
+        this.$store.commit('setTitleAndMenuShow', false)
         // 隐藏菜单栏弹出的设置栏
         this.$refs.MenuBar.hideSetting();
         // 隐藏菜单栏弹出的目录
@@ -199,21 +137,33 @@
       },
       // 获取当前进度
       getProcess: function () {
-        if(this.bookAvailable) {
+        if(this.$store.state.isBookAvailable) {
           let currentLocation = this.rendition.currentLocation();
           let currentPage = this.locations.percentageFromCfi(currentLocation.start.cfi);
           this.$refs.MenuBar.progress = Math.round(currentPage*1000) / 10;
-          this.$refs.MenuBar.currentHref = currentLocation.start.href;
+          this.$store.commit('setCurrentHref', currentLocation.start.href);
         }
       }
     },
-    mounted: function () {
-      let path = this.$route.params.path;
-      if(path){
-        this.showEpub(this.$route.params.path);
-      }
+    computed:{
+
     },
-    created: function () {
+    mounted() {
+      if(localStorage.getItem("currentThemeId")){
+        this.$store.commit('setCurrentThemeId', Number(localStorage.getItem("currentThemeId")))
+      }
+      if(localStorage.getItem('currentFontSize')){
+        this.$store.commit('setCurrentFontSize', Number(localStorage.getItem('currentFontSize')))
+      }
+      if(localStorage.getItem("currentProcess")) {
+        this.$store.commit('setCurrentProcess', localStorage.getItem("currentProcess"))
+      }
+      // if(localStorage.getItem("currentPath")){
+      //   this.$store.commit('setCurrentPath', JSON.parse(localStorage.getItem("currentPath")))
+      // }
+      this.showEpub();
+    },
+    created() {
       let that = this;
       document.onkeyup = function (e) {
         let key = e.keyCode;

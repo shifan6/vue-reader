@@ -1,8 +1,8 @@
 <template>
   <transition name="slide-right">
     <div class="content">
-      <div class="content-wrapper" v-if="bookAvailable">
-        <div class="content-item" v-for="(item, index) in navigation.toc" :key="index" @click="navigateTo(item.href)" :class="{'current': item.href === currentHref}">
+      <div class="content-wrapper" v-if="isBookAvailable">
+        <div class="content-item" v-for="(item, index) in currentNavigation.toc" :key="index" @click="navigateTo(item.href)" :class="{'current': item.href === currentHref}">
           <span class="text">{{ item.label }}</span>
         </div>
       </div>
@@ -13,15 +13,20 @@
 <script>
     export default {
       name: "content-view",
-      props: {
-        isShowContent: Boolean,
-        navigation: Object,
-        bookAvailable: Boolean,
-        currentHref: String
-      },
       methods: {
         navigateTo: function (href) {
           this.$emit('navigateTo', href)
+        }
+      },
+      computed:{
+        currentHref(){
+          return this.$store.state.currentHref
+        },
+        isBookAvailable(){
+          return this.$store.state.isBookAvailable
+        },
+        currentNavigation(){
+          return this.$store.state.currentNavigation
         }
       }
     }

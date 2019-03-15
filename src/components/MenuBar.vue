@@ -6,7 +6,7 @@
           <div class="preview" :style="{ fontSize: fontSizeList[0].fontSize + 'px' }">A</div>
           <div class="font-wrapper">
             <div class="font-size" ref="fontItem" v-for="(item, index) in fontSizeList" @click="setFontSize(item.fontSize)" :key="index">
-              <div class="point" v-if="defaultFontSize == item.fontSize">
+              <div class="point" v-if="currentFontSize == item.fontSize">
                 <div class="small-point"></div>
               </div>
             </div>
@@ -16,7 +16,7 @@
         <div class="setting-theme" v-show="showTag == 1">
           <div class="setting-theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
             <div class="preview" :style="{ background: item.style.body.background }" :class="{'border': item.style.body.background === '#fff'}"></div>
-            <div class="text" :class="{ 'selected': index === defaultThemeId }">{{item.title}}</div>
+            <div class="text" :class="{ 'selected': index === currentThemeId }">{{item.title}}</div>
           </div>
         </div>
         <div class="setting-progress" v-show="showTag == 2">
@@ -28,11 +28,11 @@
                    @change="onProgressChange"
                    @input="onProgressInput"
                    :value="progress"
-                   :disabled="!bookAvailable"
+                   :disabled="!isBookAvailable"
                    ref="progress">
           </div>
           <div class="text-wrapper">
-            <span>{{ bookAvailable ? progress + '%' : '加载中...'}}</span>
+            <span>{{ isBookAvailable ? progress + '%' : '加载中...'}}</span>
           </div>
         </div>
       </div>
@@ -53,16 +53,12 @@
         </div>
       </div>
     </transition>
-    <content-view :isShowContent="isShowContent"
-                  v-show="isShowContent"
-                  :navigation="navigation"
-                  :bookAvailable="bookAvailable"
+    <content-view v-if="isContentShow"
                   @navigateTo="navigateTo"
-                  :currentHref="currentHref"
     ></content-view>
     <transition name="fade">
       <div class="content-mask"
-           v-if="isShowContent"
+           v-if="isContentShow"
            @click="hideContent"
       ></div>
     </transition>
@@ -70,45 +66,31 @@
 </template>
 <script>
   import ContentView from '@/components/ContentView'
+  import CONST from '@/config/CONST'
   export default {
     name: "MenuBar",
     components: {
       ContentView
     },
-    props: {
-      isTitleAndMenuShow: {
-        type: Boolean,
-        value: false
-      },
-      fontSizeList: Array,
-      defaultFontSize: Number,
-      themesList: Array,
-      defaultThemeId: Number,
-      bookAvailable: Boolean,
-      navigation: Object
-    },
     data: function () {
       return {
-        isSettingShow: false,
         showTag: 0,
         progress: 0,
-        isShowContent: false,
-        currentHref: ''
       }
     },
     methods: {
       showSetting: function (tag) {
         this.showTag = tag;
         if(this.showTag === 3){
-          this.isSettingShow = false;
-          this.isShowContent = true;
+          this.$store.commit('setSettingShow', false)
+          this.$store.commit('setContentShow', true);
         }else {
-          this.isSettingShow = true;
+          this.$store.commit('setSettingShow', true)
         }
         this.getProcess();
       },
       hideSetting: function () {
-        this.isSettingShow = false;
+        this.$store.commit('setSettingShow', false)
       },
       setFontSize: function (fontSize) {
         this.$emit('setFontSize', fontSize);
@@ -123,13 +105,39 @@
         this.progress = e.target.value;
       },
       hideContent: function () {
-        this.isShowContent = false;
+        this.$store.commit('setContentShow', false);
       },
       navigateTo: function (href) {
         this.$emit('navigateTo', href)
       },
       getProcess: function () {
         this.$emit('getProcess');
+      }
+    },
+    computed: {
+      fontSizeList(){
+        return CONST.bookConfig.fontSizeList
+      },
+      themesList(){
+        return CONST.bookConfig.themesList
+      },
+      currentFontSize(){
+        return this.$store.state.currentFontSize
+      },
+      currentThemeId(){
+        return this.$store.state.currentThemeId
+      },
+      isTitleAndMenuShow(){
+        return this.$store.state.isTitleAndMenuShow
+      },
+      isContentShow(){
+        return this.$store.state.isContentShow
+      },
+      isSettingShow(){
+        return this.$store.state.isSettingShow
+      },
+      isBookAvailable(){
+        return this.$store.state.isBookAvailable
       }
     },
     watch: {

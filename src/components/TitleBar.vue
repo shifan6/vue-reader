@@ -22,10 +22,9 @@
 <script>
     export default {
       name: "TitleBar",
-      props: {
-        isTitleAndMenuShow: {
-          type: Boolean,
-          value: false
+      computed: {
+        isTitleAndMenuShow(){
+          return this.$store.state.isTitleAndMenuShow
         }
       }
     }
