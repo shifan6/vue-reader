@@ -1,7 +1,7 @@
 <template>
   <transition name="slide-down">
     <div class="title-wrapper" v-show="isTitleAndMenuShow">
-      <div class="title-left">
+      <div class="title-left" @click="goBack">
         <span class="icon-back icon"></span>
       </div>
       <div class="title-right">
@@ -22,6 +22,11 @@
 <script>
     export default {
       name: "TitleBar",
+      methods: {
+        goBack: function(){
+          this.$router.go(-1)
+        }
+      },
       computed: {
         isTitleAndMenuShow(){
           return this.$store.state.isTitleAndMenuShow

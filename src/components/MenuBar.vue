@@ -15,7 +15,7 @@
         </div>
         <div class="setting-theme" v-show="showTag == 1">
           <div class="setting-theme-item" v-for="(item, index) in themesList" :key="index" @click="setTheme(index)">
-            <div class="preview" :style="{ background: item.style.body.background }" :class="{'border': item.style.body.background === '#fff'}"></div>
+            <div class="preview" :style="{ background: item.style.background }" :class="{'border': item.style.background === '#fff'}"></div>
             <div class="text" :class="{ 'selected': index === currentThemeId }">{{item.title}}</div>
           </div>
         </div>
@@ -138,6 +138,9 @@
       },
       isBookAvailable(){
         return this.$store.state.isBookAvailable
+      },
+      currentThemeId(){
+        return this.$store.state.currentThemeId
       }
     },
     watch: {

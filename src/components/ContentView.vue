@@ -2,7 +2,7 @@
   <transition name="slide-right">
     <div class="content">
       <div class="content-wrapper" v-if="isBookAvailable">
-        <div class="content-item" v-for="(item, index) in currentNavigation.toc" :key="index" @click="navigateTo(item.href)" :class="{'current': item.href === currentHref}">
+        <div class="content-item" v-for="(item, index) in currentNavigation" :key="index" @click="navigateTo(item)" :class="{'current': item.cfi === currentHref}">
           <span class="text">{{ item.label }}</span>
         </div>
       </div>

@@ -14,6 +14,7 @@
       @onProgressChange="onProgressChange"
       @navigateTo="navigateTo"
       @getProcess="getProcess"
+      @setTheme="setTheme"
       ref="MenuBar"></menu-bar>
   </div>
 </template>
@@ -22,7 +23,7 @@
   import MenuBar from '@/components/MenuBar'
   import { Loading } from 'element-ui'
   import CONST from '@/config/CONST'
-  import ePub from 'epubjs'
+  const ePub = window.ePub
   export default {
     components: {
       TitleBar,
@@ -33,63 +34,99 @@
       }
     },
     methods: {
-      prevPage: function(){
-        if(this.rendition){
-          this.rendition.prev().then(() => {
-            this.getProcess();
-          });
+      init: function () {
+        if(localStorage.getItem("currentThemeId")){
+          this.$store.commit('setCurrentThemeId', Number(localStorage.getItem("currentThemeId")))
+        }
+        if(localStorage.getItem('currentFontSize')){
+          this.$store.commit('setCurrentFontSize', Number(localStorage.getItem('currentFontSize')))
+        }
+        if(this.$route.params.bookId){
+          this.bookId = this.$route.params.bookId
+          localStorage.setItem('currentBookId', this.bookId)
+          this.readBookInfo(this.bookId)
+        }else {
+          this.bookId = Number(localStorage.getItem("currentBookId"))
+          this.openIndexedDB(this.bookId)
         }
       },
-      nextPage: function(){
-        if(this.rendition){
-          this.rendition.next().then(() => {
-            this.getProcess();
-          });
+      openIndexedDB: function (bookId) {
+        let request = window.indexedDB.open('bookBD')
+        let that = this;
+        request.onsuccess = function () {
+          that.$store.commit('setBookDatabase', request.result)
+          that.readBookInfo(bookId)
         }
+        request.onerror = function () {
+          console.log('数据库打开失败')
+        }
+        request.onupgradeneeded = function (e) {
+          let result = e.target.result
+          if(!result.objectStoreNames.contains('bookInfoList')){
+            let store = result.createObjectStore('bookInfoList', { autoIncrement: true })
+            store.createIndex('bookName', 'bookName', { unique: true })
+          }
+          that.$store.commit('setBookDatabase', result)
+        }
+      },
+      prevPage: function(){
+        this.book.prevPage().then(() => {
+          this.getProcess();
+        });
+      },
+      nextPage: function(){
+        this.book.nextPage().then(() => {
+          this.getProcess();
+        });
       },
       // 电子书的解析和渲染
       showEpub: function() {
-        if(!this.$store.state.currentPath) {
+        if(!this.$store.state.currentBookInfo.bookFile) {
           return ;
         }
         // 生成Book对象
-        this.book = new ePub(this.$store.state.currentPath);
-        // 生成Rendition
-        this.rendition = this.book.renderTo('read', {
+        this.book = ePub({
+          bookPath: this.$store.state.currentBookInfo.bookFile,
           width: window.innerWidth,
-          height: window.innerHeight
+          height: window.innerHeight,
+          restore: false,
+          spreads: false
         });
+
         // 通过Rendition.display渲染电子书
-        if(this.$store.state.currentProcess > 0){
+        if(this.$store.state.currentBookInfo.currentProgress > 0){
           this.loadingInstance = Loading.service({
             text: '进度读取中'
           });
-        }else {
-          this.rendition.display();
         }
-        // 获取Theme对象
-        this.themes = this.rendition.themes;
-        // 获取hooks对象
-        this.hooks = this.rendition.hooks;
-        // 设置默认字体大小
-        this.setFontSize(this.$store.state.currentFontSize);
-        // this.themes.register(name, styles)
-        // this.themes.select(name)
-        this.registerThemes();
-        this.setTheme(this.$store.state.currentThemeId);
-        // 获取locations对象
-        // 通过epubjs的钩子函数来实现
-        this.book.ready.then(() => {
-          this.$store.commit('setCurrentNavigation', this.book.navigation)
+
+        this.book.getToc().then(toc => {
+          this.$store.commit('setCurrentNavigation', toc)
+        })
+
+        this.book.ready.all.then(() => {
           return this.book.locations.generate();
         }).then(() => {
           this.locations = this.book.locations;
           this.$store.commit('setBookAvailable', true)
-          if(this.$store.state.currentProcess > 0){
-            const loc = this.locations.cfiFromPercentage(this.$store.state.currentProcess / 100);
-            this.rendition.display(loc);
+          if(this.$store.state.currentBookInfo.currentProgress > 0){
+            const loc = this.locations.cfiFromPercentage(this.$store.state.currentBookInfo.currentProgress / 100);
+            this.book.goto(loc);
             this.loadingInstance.close();
           }
+        });
+        this.book.renderer.forceSingle(false)
+        this.book.on('renderer:locationChanged', locationCfi => {
+          this.locationCfi = locationCfi
+        })
+        // 设置默认字体大小
+        this.setFontSize(this.$store.state.currentFontSize);
+        this.setTheme(this.$store.state.currentThemeId);
+        // 获取locations对象
+        // 通过epubjs的钩子函数来实现
+        this.book.renderTo('read').then(() => {
+          this.book.setStyle('padding-left', '20px')
+          this.book.setStyle('padding-right', '10px')
         });
       },
       toggleTitleAndMenu: function () {
@@ -100,30 +137,24 @@
       },
       setFontSize: function (fontSize) {
         this.$store.commit('setCurrentFontSize', fontSize)
-        if(this.themes){
-          this.themes.fontSize(fontSize + 'px');
-        }
-      },
-      registerThemes: function () {
-        CONST.bookConfig.themesList.forEach(theme => {
-          this.themes.register(theme.name, theme.style)
-        })
+        this.book.setStyle('font-size', fontSize + 'px')
       },
       setTheme: function (themeId) {
+        let themesInfo = CONST.bookConfig.themesList[themeId]
         this.$store.commit('setCurrentThemeId', themeId)
-        if(this.themes){
-          this.themes.select(CONST.bookConfig.themesList[themeId].name);
-        }
+        this.book.setStyle('color', themesInfo.style.color)
+        this.book.setStyle('background-color', themesInfo.style.background)
       },
       // progress 进度条的数值 （0-100）
       onProgressChange: function (progress) {
         const percentage = progress / 100;
         const location = percentage > 0 ? this.locations.cfiFromPercentage(percentage) : 0;
-        this.rendition.display(location);
+        this.book.goto(location);
+        this.updateBookProgress(progress)
       },
       // 根据目录链接跳转到指定位置
-      navigateTo: function (href) {
-        this.rendition.display(href);
+      navigateTo: function (item) {
+        this.book.goto(item.href)
         this.hideTitleAndMenu();
         this.getProcess();
       },
@@ -138,10 +169,35 @@
       // 获取当前进度
       getProcess: function () {
         if(this.$store.state.isBookAvailable) {
-          let currentLocation = this.rendition.currentLocation();
-          let currentPage = this.locations.percentageFromCfi(currentLocation.start.cfi);
+          let currentPage = this.locations.percentageFromCfi(this.locationCfi);
           this.$refs.MenuBar.progress = Math.round(currentPage*1000) / 10;
-          this.$store.commit('setCurrentHref', currentLocation.start.href);
+          this.$store.commit('setCurrentHref', this.locationCfi);
+          this.updateBookProgress(Math.round(currentPage*1000) / 10)
+        }
+      },
+      readBookInfo: function (bookId) {
+        let request = this.$store.state.bookDatabase.transaction(['bookInfoList']).objectStore('bookInfoList').get(bookId)
+        let that = this
+        request.onerror = function () {
+          console.log('书籍信息获取失败')
+        }
+        request.onsuccess = function () {
+          let result = request.result
+          //result.id = bookId
+          that.$store.commit('setCurrentBookInfo', result)
+          that.showEpub();
+        }
+      },
+      updateBookProgress: function (progress) {
+        let currentBookInfo = this.$store.state.currentBookInfo
+        currentBookInfo.currentProgress = progress
+        this.$store.commit('setCurrentBookInfo', currentBookInfo)
+        let request = this.$store.state.bookDatabase.transaction(['bookInfoList'], 'readwrite').objectStore('bookInfoList').put(currentBookInfo, this.bookId)
+        request.onsuccess = function () {
+          console.log('进度更新成功')
+        }
+        request.onerror = function (e) {
+          console.log('进度更新失败')
         }
       }
     },
@@ -149,19 +205,10 @@
 
     },
     mounted() {
-      if(localStorage.getItem("currentThemeId")){
-        this.$store.commit('setCurrentThemeId', Number(localStorage.getItem("currentThemeId")))
-      }
-      if(localStorage.getItem('currentFontSize')){
-        this.$store.commit('setCurrentFontSize', Number(localStorage.getItem('currentFontSize')))
-      }
-      if(localStorage.getItem("currentProcess")) {
-        this.$store.commit('setCurrentProcess', localStorage.getItem("currentProcess"))
-      }
-      // if(localStorage.getItem("currentPath")){
-      //   this.$store.commit('setCurrentPath', JSON.parse(localStorage.getItem("currentPath")))
-      // }
-      this.showEpub();
+      this.init()
+    },
+    destroyed() {
+      this.book && this.book.destroy()
     },
     created() {
       let that = this;

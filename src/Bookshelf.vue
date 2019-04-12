@@ -8,19 +8,22 @@
       </div>
     </div>
     <div class="bookshelf-wrapper">
-      <div class="book">
-        <div class="book-cover">
-          <img src="" alt="">
+      <div class="book" v-for="book in bookInfoList">
+        <div class="book-cover" @click="openBook(book.bookId)">
+          <img :src="book.bookCover" alt="" class="book-cover-img">
         </div>
-        <div class="book-info">
-          <div class="book-name"></div>
-          <div class="book-read"></div>
+        <div class="book-info" >
+          <div class="book-name">{{book.bookName}}</div>
+          <div class="book-process">{{book.currentProgress}}%</div>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
+    import { Message } from 'element-ui'
+    import { getCoverUrl } from '@/utils/bookUtils'
+    const ePub = window.ePub
     export default {
       name: "bookshelf",
       data: function () {
@@ -29,24 +32,94 @@
         }
       },
       methods: {
+        init: function () {
+          this.openIndexedDB()
+        },
         addBook: function (e) {
           let file = e.target.files[0];
-          let fileName = file.name.replace(/(.*\/)*([^.]+).*/ig,"$2");
           //清空输入框
           e.target.value = '';
-          console.log(fileName);
           let that = this;
           let fileReader = new FileReader();
           fileReader.onload = function (e) {
-            //console.log(e.target.result
-            //that.$store.commit('setCurrentPath', e.target.result)
-            that.$store.commit('setCurrentPath', './static/看见.epub')
-            that.$router.push({
-              name: 'EBook'
+            let content = e.target.result
+            this.book = ePub({
+              bookPath: content,
+              restore: false
+            })
+            this.book.getMetadata().then(meta => {
+              getCoverUrl(this.book, cover => {
+                let request = that.$store.state.bookDatabase.transaction(['bookInfoList'], 'readwrite').objectStore('bookInfoList').add({ bookName: meta.bookTitle, bookAuthor: meta.creator, currentProgress: 0, bookFile: content, bookCover: cover})
+                request.onsuccess = function () {
+                  that.getBookInfoList()
+                }
+                request.onerror = function (e) {
+                  console.log('数据写入失败')
+                  Message({
+                    message: e.target.error.message,
+                    type: 'error'
+                  })
+                }
+              })
             })
           };
           fileReader.readAsArrayBuffer(file);
+        },
+        openIndexedDB: function () {
+          let request = window.indexedDB.open('bookBD')
+          let that = this;
+          request.onsuccess = function () {
+            that.$store.commit('setBookDatabase', request.result)
+            that.getBookInfoList()
+          }
+          request.onerror = function () {
+            console.log('数据库打开失败')
+          }
+          request.onupgradeneeded = function (e) {
+            let result = e.target.result
+            if(!result.objectStoreNames.contains('bookInfoList')){
+              let store = result.createObjectStore('bookInfoList', { autoIncrement: true })
+              store.createIndex('bookName', 'bookName', { unique: true })
+            }
+            that.$store.commit('setBookDatabase', result)
+          }
+        },
+        getBookInfoList: function () {
+          let that = this
+          let store = this.$store.state.bookDatabase.transaction('bookInfoList').objectStore('bookInfoList');
+          let bookInfoList = []
+          store.openCursor().onsuccess = function (e) {
+            let cursor = e.target.result;
+            if(cursor){
+              bookInfoList.push({
+                bookId: cursor.key,
+                bookName: cursor.value.bookName,
+                currentProgress: cursor.value.currentProgress,
+                bookCover: cursor.value.bookCover,
+                bookAuthor: cursor.value.bookAuthor
+              })
+              cursor.continue()
+            }else {
+              that.$store.commit('setBookInfoList', bookInfoList)
+            }
+          }
+        },
+        openBook: function (bookId) {
+          this.$router.push({
+            name: 'EBook',
+            params: {
+              bookId: bookId
+            }
+          })
         }
+      },
+      computed: {
+        bookInfoList: function () {
+          return this.$store.state.bookInfoList
+        }
+      },
+      mounted: function () {
+        this.init()
       }
     }
 </script>
@@ -87,6 +160,42 @@
           border-radius: inherit;
         }
 
+      }
+    }
+    .bookshelf-wrapper {
+      display: flex;
+      padding: px2rem(40) 0;
+      .book {
+        width: px2rem(200);
+        margin-right: px2rem(40);
+        margin-bottom: px2rem(40);
+        font-size: px2rem(20);
+        color: #444;
+        .book-cover {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: px2rem(280);
+          margin-bottom: px2rem(10);
+          box-shadow: 0 0 5px rgba(0,0,0,.2);
+          border-radius: 1px;
+          background: #eee;
+          .book-cover-img {
+            width: 100%;
+            height: 100%;
+          }
+        }
+        .book-info {
+          display: flex;
+          justify-content: space-between;
+          line-height: px2rem(30);
+          .book-name {
+            padding-right: px2rem(10);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
       }
     }
   }
