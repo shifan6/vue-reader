@@ -16,6 +16,9 @@
           <div class="book-name">{{book.bookName}}</div>
           <div class="book-process">{{book.currentProgress}}%</div>
         </div>
+        <div class="book-del" @click.stop="delBook(book.bookId)">
+          <span class="icon-close icon"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -34,36 +37,6 @@
       methods: {
         init: function () {
           this.openIndexedDB()
-        },
-        addBook: function (e) {
-          let file = e.target.files[0];
-          //清空输入框
-          e.target.value = '';
-          let that = this;
-          let fileReader = new FileReader();
-          fileReader.onload = function (e) {
-            let content = e.target.result
-            this.book = ePub({
-              bookPath: content,
-              restore: false
-            })
-            this.book.getMetadata().then(meta => {
-              getCoverUrl(this.book, cover => {
-                let request = that.$store.state.bookDatabase.transaction(['bookInfoList'], 'readwrite').objectStore('bookInfoList').add({ bookName: meta.bookTitle, bookAuthor: meta.creator, currentProgress: 0, bookFile: content, bookCover: cover})
-                request.onsuccess = function () {
-                  that.getBookInfoList()
-                }
-                request.onerror = function (e) {
-                  console.log('数据写入失败')
-                  Message({
-                    message: e.target.error.message,
-                    type: 'error'
-                  })
-                }
-              })
-            })
-          };
-          fileReader.readAsArrayBuffer(file);
         },
         openIndexedDB: function () {
           let request = window.indexedDB.open('bookBD')
@@ -102,6 +75,50 @@
             }else {
               that.$store.commit('setBookInfoList', bookInfoList)
             }
+          }
+        },
+        addBook: function (e) {
+          let file = e.target.files[0];
+          //清空输入框
+          e.target.value = '';
+          let that = this;
+          let fileReader = new FileReader();
+          fileReader.onload = function (e) {
+            let content = e.target.result
+            this.book = ePub({
+              bookPath: content,
+              restore: false
+            })
+            this.book.getMetadata().then(meta => {
+              getCoverUrl(this.book, cover => {
+                let request = that.$store.state.bookDatabase.transaction(['bookInfoList'], 'readwrite').objectStore('bookInfoList').add({ bookName: meta.bookTitle, bookAuthor: meta.creator, currentProgress: 0, bookFile: content, bookCover: cover})
+                request.onsuccess = function () {
+                  that.getBookInfoList()
+                }
+                request.onerror = function (e) {
+                  console.log('数据写入失败')
+                  Message({
+                    message: e.target.error.message,
+                    type: 'error'
+                  })
+                }
+              })
+            })
+          };
+          fileReader.readAsArrayBuffer(file);
+        },
+        delBook: function (bookId) {
+          let that = this;
+          let request = this.$store.state.bookDatabase.transaction(['bookInfoList'], 'readwrite').objectStore('bookInfoList').delete(bookId)
+          request.onsuccess = function () {
+            Message({
+              message: '书籍删除成功',
+              type: 'success'
+            })
+            that.getBookInfoList()
+          }
+          request.onerror = function () {
+            console.log('书籍删除失败')
           }
         },
         openBook: function (bookId) {
@@ -166,6 +183,7 @@
       display: flex;
       padding: px2rem(40) 0;
       .book {
+        position: relative;
         width: px2rem(200);
         margin-right: px2rem(40);
         margin-bottom: px2rem(40);
@@ -196,7 +214,33 @@
             white-space: nowrap;
           }
         }
+        .book-del {
+          display: none;
+          position: absolute;
+          border-radius: 50%;
+          right: px2rem(-15);
+          top: px2rem(-15);
+          background: #fff;
+          overflow: hidden;
+          cursor: pointer;
+          .icon-close {
+            font-size: px2rem(30);
+            vertical-align: top;
+          }
+        }
+        &:hover .book-del {
+          display: block;
+        }
       }
     }
+  }
+</style>
+<style>
+  .el-message__icon {
+    display: flex;
+    align-items: center;
+  }
+  .el-message__icon::before {
+    font-size: 20px;
   }
 </style>

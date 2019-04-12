@@ -1,5 +1,5 @@
 # vue-reader
-> 基于vue2.0+epub.js开发Web阅读器
+> 基于vue2.0+epub.js+indexedDB开发Web阅读器
 
 项目预览：https://fannieshi.github.io/vue-reader/dist/index.html
 
