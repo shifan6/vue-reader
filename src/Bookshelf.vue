@@ -237,7 +237,7 @@
 </style>
 <style>
   .el-message__icon {
-    display: flex;
+    display: flex!important;
     align-items: center;
   }
   .el-message__icon::before {
